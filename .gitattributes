@@ -1,0 +1,35 @@
+# Mark C# files
+*.cs linguist-language=C#
+
+# Mark JavaScript files
+*.js linguist-language=JavaScript
+
+# Mark TypeScript files  
+*.ts linguist-language=TypeScript
+
+# Mark Python files
+*.py linguist-language=Python
+
+# Treat Razor views as C# (they contain C# Razor syntax)
+*.cshtml linguist-language=C#
+
+# Mark vendor/library folders as vendored (excluded from stats)
+bin/** linguist-vendored
+obj/** linguist-vendored
+node_modules/** linguist-vendored
+wwwroot/lib/** linguist-vendored
+packages/** linguist-vendored
+
+# Mark generated/minified files as generated (excluded from stats)
+*.min.js linguist-generated
+*.min.css linguist-generated
+wwwroot/dist/** linguist-generated
+wwwroot/build/** linguist-generated
+
+# Mark documentation as documentation (reduced weight)
+*.md linguist-documentation
+
+# Ensure your actual code is detected
+*.cs linguist-detectable=true
+*.js linguist-detectable=true
+*.py linguist-detectable=true
