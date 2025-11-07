@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: sap-mimosa-api
+    env: python
+    region: oregon
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn WebApp.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /mappings
+    autoDeploy: true
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        fromService:
+          name: sap-mimosa-web
+          type: web
+          property: url
+    disks:
+      - name: data
+        mountPath: /opt/render/project/src/Data
+        sizeGB: 1
+
+  - type: web
+    name: sap-mimosa-web
+    env: dotnet
+    region: oregon
+    plan: free
+    rootDir: WebApp
+    buildCommand: |
+      dotnet restore
+      dotnet publish SAP-MIMOSAapp.csproj -c Release -o out
+    startCommand: dotnet out/SAP-MIMOSAapp.dll
+    autoDeploy: true
+    envVars:
+      - key: PY_API_BASE
+        fromService:
+          name: sap-mimosa-api
+          type: web
+          property: url
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:${PORT}
