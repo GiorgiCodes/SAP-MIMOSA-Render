@@ -17,10 +17,10 @@ services:
           name: sap-mimosa-web
           type: web
           property: url
-    disks:
-      - name: data
-        mountPath: /opt/render/project/src/Data
-        sizeGB: 1
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/Data
+      sizeGB: 1
 
   - type: web
     name: sap-mimosa-web
