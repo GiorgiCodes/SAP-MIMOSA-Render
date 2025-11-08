@@ -2,30 +2,18 @@ services:
   - type: web
     name: sap-mimosa-api
     env: python
-    region: oregon
-    plan: free
-    rootDir: .
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn WebApp.app:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /mappings
-    autoDeploy: true
     envVars:
-      - key: OPENAI_API_KEY
-        sync: false
-      # After first deploy, update this to the actual web URL (e.g., https://<web>.onrender.com)
       - key: CORS_ORIGINS
-        value: https://REPLACE_WITH_WEB_URL
+        value: https://sap-mimosa-web.onrender.com
 
   - type: web
     name: sap-mimosa-web
     env: docker
-    region: oregon
-    plan: free
     rootDir: WebApp
-    autoDeploy: true
     envVars:
-      # After first deploy, update this to the actual API URL (e.g., https://<api>.onrender.com/)
       - key: PY_API_BASE
-        value: https://REPLACE_WITH_API_URL/
+        value: https://sap-mimosa-api.onrender.com/
       - key: ASPNETCORE_URLS
-        value: http://0.0.0.0:${PORT}
+        value: http://0.0.0.0:$PORT

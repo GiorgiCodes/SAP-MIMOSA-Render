@@ -69,11 +69,13 @@ namespace SAP_MIMOSAapp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMappingById(string mapID)
+         public async Task<IActionResult> GetMappingById(string mapID)
         {
             if (string.IsNullOrEmpty(mapID))
                 return BadRequest("mapID is required");
-            var response = await _httpClient.GetAsync($"http://127.0.0.1:8000/mappings/{mapID}");
+            
+            var response = await _httpClient.GetAsync($"mappings/{mapID}");
+            
             if (!response.IsSuccessStatusCode)
                 return NotFound();
             var json = await response.Content.ReadAsStringAsync();
