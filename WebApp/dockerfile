@@ -9,6 +9,8 @@ RUN dotnet publish SAP-MIMOSAapp.csproj -c Release -o /app/out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/out .
-ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
+
 EXPOSE 8080
-CMD ["dotnet", "SAP-MIMOSAapp.dll"]
+
+# Use shell form CMD to properly expand PORT environment variable
+CMD /bin/sh -c "dotnet SAP-MIMOSAapp.dll --urls http://0.0.0.0:${PORT:-8080}"
