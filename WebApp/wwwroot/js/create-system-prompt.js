@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("[v0] Fetching with improveMappings:", improve)
 
-        fetch(`http://127.0.0.1:8000/system_message?improveMappings=${improve}`)
+        fetch(`/Home/system_message?improveMappings=${improve}`)
             .then((response) => {
                 console.log("[v0] API response status:", response.status)
                 console.log("[v0] API response headers:", response.headers)

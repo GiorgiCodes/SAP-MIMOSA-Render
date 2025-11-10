@@ -82,6 +82,31 @@ namespace SAP_MIMOSAapp.Controllers
             return Content(json, "application/json");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSystemMessage(bool improveMappings = false)
+        {
+            try
+            {
+                _logger.LogInformation($"Getting system message (improveMappings: {improveMappings})");
+                var response = await _httpClient.GetAsync($"system_message?improveMappings={improveMappings}");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"Failed to get system message: {response.StatusCode}");
+                    return StatusCode((int)response.StatusCode, "Failed to get system message");
+                }
+                
+                var json = await response.Content.ReadAsStringAsync();
+                return Content(json, "application/json");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting system message");
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
+        }
+    
+
         // Save MappingDocument to temp file
         private void SaveMappingTempFile(MappingDocument doc)
         {
