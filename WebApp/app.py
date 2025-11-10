@@ -15,10 +15,6 @@ from datetime import datetime
 from fastapi import Query
 from fastapi.responses import JSONResponse
 
-
-# Initialize OpenAI client
-client = OpenAI()
-
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -27,17 +23,6 @@ storagePath = "Data/SAPMIMOSA.json"
 # JSON Raw-Data file path
 rawDataStoragePath = "Data/rawDataOfAIResponses.json"
 
-openai_api_key = os.getenv("OPENAI_API_KEY")
-if not openai_api_key:
-    print("[WARNING] OPENAI_API_KEY not found. AI features will be disabled.")
-    client = None
-else:
-    try:
-        client = OpenAI(api_key=openai_api_key)
-        print("[SUCCESS] OpenAI client initialized successfully")
-    except Exception as e:
-        print(f"[ERROR] Failed to initialize OpenAI client: {e}")
-        client = None
 
 # Configure CORS origins from env var or fallback to localhost defaults
 cors_origins_env = os.getenv("CORS_ORIGINS")
