@@ -17,7 +17,7 @@ services:
   - type: web
     name: sap-mimosa-web
     env: docker
-    dockerfilePath: ./WebApp/dockerfile
+    dockerfilePath: ./WebApp/Dockerfile
     dockerContext: ./WebApp
     region: singapore
     plan: free
