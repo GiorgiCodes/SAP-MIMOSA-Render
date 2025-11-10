@@ -12,7 +12,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 # Install Python 3.11 in the .NET image
 RUN apt-get update && \
-    apt-get install -y python3.11 python3-pip && \
+    apt-get install -y python3.11 python3-pip curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -20,7 +20,7 @@ WORKDIR /app
 
 # Copy Python application and dependencies
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy Python source code
 COPY main.py .
@@ -55,9 +55,6 @@ export ASPNETCORE_URLS="http://0.0.0.0:${PORT}"\n\
 export PY_API_BASE="http://127.0.0.1:8000/"\n\
 dotnet SAP-MIMOSAapp.dll\n\
 ' > /app/start.sh && chmod +x /app/start.sh
-
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080
 
