@@ -3,17 +3,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Configure HttpClient to call Python API using PY_API_BASE environment variable
-var pyApiBase = Environment.GetEnvironmentVariable("PY_API_BASE") ?? "http://localhost:8000/";
+var pyApiBase = Environment.GetEnvironmentVariable("PY_API_BASE") ?? "http://127.0.0.1:8000/";
 Console.WriteLine($"[SAP-MIMOSA] Configuring Python API base URL: {pyApiBase}");
 
 builder.Services.AddHttpClient("PythonAPI", client =>
 {
     client.BaseAddress = new Uri(pyApiBase);
-    client.Timeout = TimeSpan.FromSeconds(60);
+    client.Timeout = TimeSpan.FromMinutes(5);
 });
 
-// Also add default HttpClient for other uses
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
@@ -25,7 +23,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Only use HTTPS redirect in development or when explicitly configured
 if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();

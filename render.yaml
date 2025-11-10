@@ -1,27 +1,15 @@
 services:
   - type: web
-    name: sap-mimosa-api
+    name: sap-mimosa-unified
     env: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
     region: oregon
     plan: free
-    healthCheckPath: /mappings
+    healthCheckPath: /
     autoDeploy: true
     envVars:
       - key: OPENAI_API_KEY
         sync: false
-      - key: CORS_ORIGINS
-        value: https://sap-mimosa-web.onrender.com
-
-  - type: web
-    name: sap-mimosa-web
-    env: docker
-    dockerfilePath: ./WebApp/dockerfile
-    dockerContext: ./WebApp
-    region: oregon
-    plan: free
-    autoDeploy: true
-    envVars:
       - key: PY_API_BASE
-        value: https://sap-mimosa-api.onrender.com/
+        value: http://127.0.0.1:8000/

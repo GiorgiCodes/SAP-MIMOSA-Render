@@ -178,6 +178,20 @@ async def askAI(request: SearchQuery):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+app = FastAPI()
+
+@app.get("/")
+async def root():
+    return {"status": "healthy", "service": "SAP-MIMOSA API", "message": "Backend is ready"}
+
+@app.get("/health")
+async def healthCheck():
+    return {
+        "status": "healthy",
+        "service": "SAP-MIMOSA API",
+        "timestamp": datetime.datetime.now().isoformat()
+    }
+
 # Get mappings
 @app.get("/mappings")
 async def getMappings():
