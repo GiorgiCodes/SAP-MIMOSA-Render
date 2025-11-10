@@ -178,7 +178,7 @@ async def askAI(request: SearchQuery):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-app = FastAPI()
+
 
 @app.get("/")
 async def root():

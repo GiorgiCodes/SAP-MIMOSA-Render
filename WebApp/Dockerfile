@@ -1,0 +1,16 @@
+# build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet restore SAP-MIMOSAapp.csproj
+RUN dotnet publish SAP-MIMOSAapp.csproj -c Release -o /app/out
+
+# run
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build /app/out .
+
+EXPOSE 8080
+
+# Use shell form CMD to properly expand PORT environment variable
+CMD /bin/sh -c "dotnet SAP-MIMOSAapp.dll --urls http://0.0.0.0:${PORT:-8080}"
