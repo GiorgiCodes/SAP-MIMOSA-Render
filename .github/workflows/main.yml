@@ -1,0 +1,33 @@
+name: Keep Backend Alive
+
+on:
+  schedule:
+    # Runs every 14 minutes (Render free tier sleeps after 15 min)
+    - cron: '*/14 * * * *'
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Backend API
+        run: |
+          echo "Pinging backend at $(date)"
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://sap-mimosa-api.onrender.com/health)
+          if [ $response -eq 200 ]; then
+            echo "✅ Backend is alive (HTTP $response)"
+          else
+            echo "⚠️ Backend returned HTTP $response"
+          fi
+        continue-on-error: true
+      
+      - name: Ping Frontend
+        run: |
+          echo "Pinging frontend at $(date)"
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://sap-mimosa-web.onrender.com/)
+          if [ $response -eq 200 ]; then
+            echo "✅ Frontend is alive (HTTP $response)"
+          else
+            echo "⚠️ Frontend returned HTTP $response"
+          fi
+        continue-on-error: true
