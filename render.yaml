@@ -2,7 +2,7 @@ services:
   - type: web
     name: sap-mimosa-api
     env: docker
-    dockerfilePath: ./Dockerfile  # Path to Python Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     region: oregon
     plan: free
@@ -17,7 +17,7 @@ services:
   - type: web
     name: sap-mimosa-web
     env: docker
-    dockerfilePath: ./WebApp/Dockerfile
+    dockerfilePath: ./WebApp/dockerfile
     dockerContext: ./WebApp
     region: oregon
     plan: free
