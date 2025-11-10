@@ -1,28 +1,27 @@
 services:
   - type: web
-    name: sap-mimosa-api-bakend
-    env: python
-    runtime: python-3.11.9
+    name: sap-mimosa-api
+    env: docker
+    dockerfilePath: ./Dockerfile  # Path to Python Dockerfile
+    dockerContext: .
     region: oregon
     plan: free
-    buildCommand: ""
-    startCommand: ""
     healthCheckPath: /mappings
     autoDeploy: true
     envVars:
       - key: OPENAI_API_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://sap-mimosa-web-frontend.onrender.com
+        value: https://sap-mimosa-web.onrender.com
 
   - type: web
-    name: sap-mimosa-web-frontend
+    name: sap-mimosa-web
     env: docker
+    dockerfilePath: ./WebApp/Dockerfile
+    dockerContext: ./WebApp
     region: oregon
     plan: free
-    rootDir: WebApp
-    dockerfilePath: ./Dockerfile
     autoDeploy: true
     envVars:
       - key: PY_API_BASE
-        value: https://sap-mimosa-api-bakend.onrender.com/
+        value: https://sap-mimosa-api.onrender.com/
