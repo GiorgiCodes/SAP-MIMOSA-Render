@@ -3,7 +3,7 @@ services:
     name: sap-mimosa-api
     env: python
     runtime: python-3.11.9
-    region: oregon
+    region: singapore
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn WebApp.app:app --host 0.0.0.0 --port $PORT
@@ -18,7 +18,7 @@ services:
   - type: web
     name: sap-mimosa-web
     env: docker
-    region: oregon
+    region: singapore
     plan: free
     rootDir: WebApp
     dockerfilePath: ./Dockerfile
