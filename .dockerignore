@@ -1,0 +1,73 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# .NET build artifacts
+bin
+obj
+*.user
+*.suo
+.vs/
+*.csproj.user
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+venv/
+env/
+ENV/
+
+# Node.js (if any frontend tooling)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+README.md
+docs/
+
+# Logs
+*.log
+logs/
+
+# Environment files (sensitive data)
+.env
+.env.local
+.env.*.local
+
+# Test files
+*.Test/
+tests/
+test/
+
+# CI/CD (these are for GitHub, not needed in container)
+.github/
+
+# Render deployment config (not needed inside container)
+render.yaml
+
+# Docker files themselves
+Dockerfile*
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+*.bak

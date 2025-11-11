@@ -101,6 +101,19 @@ def extractJsonFromResponse(response_text):
         return match.group(1)
     raise ValueError("No JSON found in AI response")
 
+@app.get("/")
+async def root():
+    return {"status": "healthy", "service": "SAP-MIMOSA API", "message": "Backend is ready"}
+
+@app.get("/health")
+async def healthCheck():
+    return {
+        "status": "healthy",
+        "service": "SAP-MIMOSA API",
+        "timestamp": datetime.datetime.now().isoformat(),
+        "openai_configured": client is not None
+    }
+
 
 # Endpoint to get system initial message of ai_model
 @app.get("/system_message")
