@@ -1,0 +1,5 @@
+.git
+obj
+bin
+node_modules
+*.md
