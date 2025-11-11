@@ -63,7 +63,7 @@ class OpenAIModel:
     def chat(self):
         if not self.apiKey:
             raise ValueError("OpenAI API key not found. Set the OPENAI_API_KEY environment variable.")
-        client = OpenAIClient(api_key=self.apiKey)
+        client = OpenAIClient(api_key=self.apiKey, timeout=60.0)
 
         # Decide which system message to use
         if self.systemPrompt and self.systemPrompt.strip():
@@ -92,6 +92,7 @@ class OpenAIModel:
 
         response = client.chat.completions.create(
             model=self.llmModel,
-            messages=messages
+            messages=messages,
+            timeout=60.0
         )
         return response
