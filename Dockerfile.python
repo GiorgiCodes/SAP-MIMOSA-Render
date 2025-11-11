@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy requirements first for better layer caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Pre-download sentence-transformers model during build to speed up first run
+# Uncomment if using sentence-transformers
+# RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
+# Copy application code
+COPY main.py .
+COPY __init__.py .
+COPY WebApp/ ./WebApp/
+COPY ValidationAndMapping/ ./ValidationAndMapping/
+COPY Data/ ./Data/
+
+# Expose port (Render provides PORT env var)
+EXPOSE 8000
+
+CMD ["python", "main.py"]

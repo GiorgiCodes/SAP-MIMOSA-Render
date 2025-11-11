@@ -1,0 +1,23 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy project files
+COPY WebApp/SAP-MIMOSAapp.csproj ./
+RUN dotnet restore SAP-MIMOSAapp.csproj
+
+# Copy remaining files and build
+COPY WebApp/ ./
+RUN dotnet publish SAP-MIMOSAapp.csproj -c Release -o /app/out
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+
+# Copy published output
+COPY --from=build /app/out .
+
+EXPOSE 8080
+
+# Start .NET app with PORT environment variable
+CMD /bin/sh -c "dotnet SAP-MIMOSAapp.dll --urls http://0.0.0.0:${PORT:-8080}"

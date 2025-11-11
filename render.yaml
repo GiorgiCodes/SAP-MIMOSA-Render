@@ -1,21 +1,30 @@
 services:
-  # Single unified service running both Python backend and .NET frontend
+  # Python FastAPI Backend
   - type: web
-    name: sap-mimosa-unified
+    name: sap-mimosa-api
     env: docker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./Dockerfile.python
+    dockerContext: .
+    region: singapore
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://sap-mimosa-web.onrender.com
+
+  # .NET Frontend
+  - type: web
+    name: sap-mimosa-web
+    env: docker
+    dockerfilePath: ./Dockerfile.dotnet
     dockerContext: .
     region: singapore
     plan: free
     healthCheckPath: /
     autoDeploy: true
     envVars:
-      # Secret - add manually in Render dashboard
-      - key: OPENAI_API_KEY
-        sync: false
-      # Auto-synced - backend runs on localhost:8000 internally
       - key: PY_API_BASE
-        value: http://127.0.0.1:8000/
-      # Auto-synced - CORS not needed since same origin
-      - key: CORS_ORIGINS
-        value: http://localhost:5015
+        value: https://sap-mimosa-api.onrender.com/
