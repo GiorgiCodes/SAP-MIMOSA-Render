@@ -6,7 +6,7 @@ import json
 import os
 import re
 import uvicorn
-from .ai_models import OpenAIModel
+from WebApp.ai_models import OpenAIModel
 from typing import List, Optional
 from uuid import uuid4
 from ValidationAndMapping.ScoreManager import ScoreManager
@@ -14,13 +14,13 @@ from ValidationAndMapping.Models import MappingQuery, SearchQuery, MappingEntry,
 from datetime import datetime
 from fastapi import Query
 from fastapi.responses import JSONResponse
+import datetime
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# JSON storage file path
+# JSON storage file paths
 storagePath = "Data/SAPMIMOSA.json"
-# JSON Raw-Data file path
 rawDataStoragePath = "Data/rawDataOfAIResponses.json"
 
 client = None
@@ -43,10 +43,10 @@ if cors_origins_env:
     origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
 else:
     origins = [
-        "http://localhost:5000",  # .NET Core HTTP
-        "https://localhost:5001",  # .NET Core HTTPS
-        "http://localhost:8000",  # FastAPI for testing
-        "http://localhost:5015"    # new frontend port
+        "http://localhost:5000",
+        "https://localhost:5001",
+        "http://localhost:8000",
+        "http://localhost:5015"
     ]
 
 app.add_middleware(
@@ -71,8 +71,6 @@ def loadData(file_path):
             return []
         return json.loads(content)
 
-import datetime
-
 def convertDatetimes(obj):
     if isinstance(obj, dict):
         return {k: convertDatetimes(v) for k, v in obj.items()}
@@ -89,26 +87,21 @@ def saveData(data, file_path):
         data = convertDatetimes(data)
         json.dump(data, file, ensure_ascii=False, indent=4)
 
-def storeRawDataOfAiResponses(mapping_doc):	       
+def storeRawDataOfAiResponses(mapping_doc):
     entry = mapping_doc.model_dump(mode="json")
-    
     try:
-        data = loadData(rawDataStoragePath)           
-        data.append(entry)            
-        saveData(data, rawDataStoragePath)            
+        data = loadData(rawDataStoragePath)
+        data.append(entry)
+        saveData(data, rawDataStoragePath)
     except Exception as file_exc:
         print(f"Failed to write raw OpenAI response: {file_exc}")
         import traceback
         traceback.print_exc()
 
-
-# Extract JSON from LLM response
 def extractJsonFromResponse(response_text):
-    # Extract Json
-    match = re.search(r"```json\s*([\s\S]*?)\s*```", response_text)
+    match = re.search(r"\`\`\`json\s*([\s\S]*?)\s*\`\`\`", response_text)
     if match:
         return match.group(1)
-    # Find the first Json-looking structure
     match = re.search(r"(\[.*\]|\{.*\})", response_text, re.DOTALL)
     if match:
         return match.group(1)
@@ -127,34 +120,77 @@ async def healthCheck():
         "openai_configured": client is not None
     }
 
-
-# Endpoint to get system initial message of ai_model
 @app.get("/system_message")
 def getSystemMessage(improveMappings: bool):
+    print(f"[v0] system_message endpoint called with improveMappings={improveMappings}")
+    
     # For improving mappings
     if improveMappings == True:
         systemMessage = OpenAIModel.getImproveMappingsMessage()
     else:
         # For initial mapping
         systemMessage = OpenAIModel.getGenerateMappingMessage()
+    
+    print(f"[v0] Returning system message (length: {len(systemMessage)} chars)")
     return JSONResponse(content={"system_message": systemMessage})
 
-# OpenAI endpoint
+@app.on_event("startup")
+async def startup_event():
+    print("\n" + "="*50)
+    print("[v0 STARTUP] FastAPI application starting...")
+    print(f"[v0 STARTUP] OpenAI configured: {client is not None}")
+    print(f"[v0 STARTUP] CORS origins: {origins}")
+    print("[v0 STARTUP] Registered routes:")
+    for route in app.routes:
+        if hasattr(route, "methods") and hasattr(route, "path"):
+            print(f"  {list(route.methods)} {route.path}")
+    print("="*50 + "\n")
+
 @app.post("/ask_AI")
 async def askAI(request: SearchQuery):
     try:
+        print("\n" + "="*50)
+        print(f"[v0 REQUEST] /ask_AI endpoint HIT!")
+        print(f"[v0 REQUEST] Model: {request.llmModel}")
+        print(f"[v0 REQUEST] Query length: {len(request.Query)} chars")
+        print(f"[v0 REQUEST] System prompt length: {len(request.systemPrompt)} chars")
+        print("="*50 + "\n")
+        
+        print(f"[v0] ask_AI called with model: {request.llmModel}")
+        print(f"[v0] Query: {request.Query[:100]}...")
+        
+        # Check if API key is available
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            print("[v0 ERROR] OPENAI_API_KEY not found in environment!")
+            raise HTTPException(
+                status_code=503,
+                detail="OpenAI API key not configured. Please set OPENAI_API_KEY in Render environment variables."
+            )
+        
+        print(f"[v0] API key found: {api_key[:10]}...")
+        
         llmModel = request.llmModel
         systemPrompt = request.systemPrompt                
         aiModel = OpenAIModel(request.Query, llmModel, request.mappings, systemPrompt)
-        response = aiModel.chat()
+        
+        print("[v0] Calling OpenAI API...")
+        
+        try:
+            response = aiModel.chat()
+        except Exception as openai_error:
+            print(f"[v0 ERROR] OpenAI call failed: {str(openai_error)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"OpenAI API error: {str(openai_error)}"
+            )
         
         result = response.choices[0].message.content
-        print(f"Sending response: {result}")
+        print(f"[v0] OpenAI response received (length: {len(result)} chars)")
+        print(f"[v0] First 200 chars: {result[:200]}")
 
-        # Extract JSON from LLM response
         json_str = extractJsonFromResponse(result)
         mappingDocDict = json.loads(json_str)
-        #print("AI returned:", mappingDocDict)  
         
         if isinstance(mappingDocDict, dict) and "mappings" in mappingDocDict:
             mappings = mappingDocDict["mappings"]
@@ -163,7 +199,6 @@ async def askAI(request: SearchQuery):
         else:
             raise ValueError(f"AI response is not a dict with a 'mappings' key or a list. Got: {mappingDocDict}")
 
-        # Convert list of dicts to list of MappingEntry objects
         mappingEntries = [MappingEntry(**item) for item in mappings]
         mappingDoc = MappingDocument(
             LLMType=llmModel,
@@ -172,24 +207,21 @@ async def askAI(request: SearchQuery):
             createdAt=datetime.datetime.now().isoformat(timespec="seconds")
         )
        
-        # Call check_accuracy and set the accuracyResult and accuracy of Single MappingPair  properties
         accuracyResult = await checkAccuracy(mappingEntries)
         mappingDoc.accuracyResult = accuracyResult["overall"]
-        mappingDoc.accuracySingleMappingPair = accuracyResult["singlePairAccuracydetails"]       
-
-        # Store mapping_doc in Data/rawDataOfAIResponses.json for ranking LLMs performance 
+        mappingDoc.accuracySingleMappingPair = accuracyResult["singlePairAccuracydetails"]
+        
         storeRawDataOfAiResponses(mappingDoc)
-
-        # Return the Mapping object directly
         return mappingDoc
 
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error in ask_openai: {str(e)}")
+        print(f"[v0 ERROR] Error in ask_AI: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# Get mappings
 @app.get("/mappings")
 async def getMappings():
     return loadData(storagePath)
@@ -204,7 +236,7 @@ async def getMappings(map_id: str):
 
 @app.post("/mappings")
 async def createMappings(document: MappingDocument):
-    data = loadData(storagePath)    
+    data = loadData(storagePath)
     if not document.mapID:
         existing_ids = [
             int(doc["mapID"]) for doc in data
@@ -216,7 +248,6 @@ async def createMappings(document: MappingDocument):
     saveData(data, storagePath)
     return document
 
-# Update mapping 
 @app.put("/mappings/{map_id}")
 async def updateMappings(map_id: str, document: MappingDocument):
     data = loadData(storagePath)
@@ -241,11 +272,9 @@ async def deleteMappings(map_id: str):
     saveData(data, storagePath)
     return {"detail": f"Mapping with mapID {map_id} deleted successfully."}
 
-# Retrieve historical data from Data/rawDataOfAIResponses.json
 @app.get("/fetchHistoricalData")
 async def getFilterHistoricalData(createdDate: Optional[datetime.datetime] = Query(None)):
     data = loadData(rawDataStoragePath)
-
     if createdDate:
         createdDateStr = createdDate.isoformat(timespec="seconds")
         result = [
@@ -253,30 +282,19 @@ async def getFilterHistoricalData(createdDate: Optional[datetime.datetime] = Que
             if map.get("createdAt") == createdDateStr
         ]
         return result
-
     return data
 
-
-# Pydantic's BaseModel does not preserve the exact decimal places of floats. Roudning in ScoreManager did not work,
-# when  do round(x, 2), it stores the binary float.
-# but when serializing to JSON, it dumps the full binary float representation. 
-# Also myltiply by 100 to get the percentage
 def to_decimals(d):
-    return {k: (round(v* 100, 2) if isinstance(v, float) and v is not None else v) for k, v in d.items()}
+    return {k: (round(v * 100, 2) if isinstance(v, float) and v is not None else v) for k, v in d.items()}
 
 @app.post("/check_accuracy")
 async def checkAccuracy(entries: List[MappingEntry]):
-    results = ScoreManager.scoreOutputWithDetails(entries)    
+    results = ScoreManager.scoreOutputWithDetails(entries)
     return {
         "overall": to_decimals(results["overall"].model_dump()),
-        "singlePairAccuracydetails": [to_decimals(r.model_dump()) for r in results["singlePairAccuracydetails"]]        
+        "singlePairAccuracydetails": [to_decimals(r.model_dump()) for r in results["singlePairAccuracydetails"]]
     }
 
 def start():
     port = int(os.getenv("PORT", "8000"))
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
-
-# Run the FastAPI app
-#if __name__ == "__main__":
-   # uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
-
