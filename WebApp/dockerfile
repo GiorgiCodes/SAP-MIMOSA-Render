@@ -6,7 +6,7 @@ RUN dotnet restore SAP-MIMOSAapp.csproj
 RUN dotnet publish SAP-MIMOSAapp.csproj -c Release -o /app/out
 
 # run
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 WORKDIR /app
 COPY --from=build /app/out .
 

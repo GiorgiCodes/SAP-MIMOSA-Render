@@ -6,7 +6,7 @@ from numpy.linalg import norm
 from ..Models import MappingEntry
 class DescriptionSimilarity:
     def __init__(self):
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')  # Lightweight BERT model
+        self.model = SentenceTransformer('paraphrase-MiniLM-L3-v2')  # Lightweight BERT model
 
     def score(self, mapping: MappingEntry) -> float:
         # For now, we'll just score the first MappingEntry in the first Mapping object

@@ -2,18 +2,18 @@ services:
   - type: web
     name: sap-mimosa-api
     env: python
-    runtime: python-3.11.9
+    runtime: python-3.11.9-slim
     region: singapore
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn WebApp.app:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: python main.py
     healthCheckPath: /mappings
     autoDeploy: true
     envVars:
       - key: OPENAI_API_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://sap-mimosa-web.onrender.com
+        value: https://sap-mimosa-frontend-r82t.onrender.com
 
   - type: web
     name: sap-mimosa-web
@@ -25,4 +25,4 @@ services:
     autoDeploy: true
     envVars:
       - key: PY_API_BASE
-        value: https://sap-mimosa-api.onrender.com/
+        value: https://sap-mimosa-render-15rb.onrender.com/
