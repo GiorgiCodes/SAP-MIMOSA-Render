@@ -57,6 +57,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def log_requests(request, call_next):
+    print(f"\n[v0 MIDDLEWARE] Incoming request: {request.method} {request.url.path}")
+    print(f"[v0 MIDDLEWARE] Headers: {dict(request.headers)}")
+    try:
+        response = await call_next(request)
+        print(f"[v0 MIDDLEWARE] Response status: {response.status_code}")
+        return response
+    except Exception as e:
+        print(f"[v0 MIDDLEWARE ERROR] Request failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise
+
 # JSON file operations
 def loadData(file_path):
     if not os.path.exists(file_path):
@@ -148,16 +162,16 @@ async def startup_event():
 
 @app.post("/ask_AI")
 async def askAI(request: SearchQuery):
+    print("\n" + "="*50)
+    print(f"[v0 ENDPOINT] /ask_AI handler started")
+    print(f"[v0 ENDPOINT] Request type: {type(request)}")
+    print(f"[v0 ENDPOINT] Request object: {request}")
+    print("="*50 + "\n")
+    
     try:
-        print("\n" + "="*50)
-        print(f"[v0 REQUEST] /ask_AI endpoint HIT!")
         print(f"[v0 REQUEST] Model: {request.llmModel}")
         print(f"[v0 REQUEST] Query length: {len(request.Query)} chars")
         print(f"[v0 REQUEST] System prompt length: {len(request.systemPrompt)} chars")
-        print("="*50 + "\n")
-        
-        print(f"[v0] ask_AI called with model: {request.llmModel}")
-        print(f"[v0] Query: {request.Query[:100]}...")
         
         # Check if API key is available
         api_key = os.getenv("OPENAI_API_KEY")
